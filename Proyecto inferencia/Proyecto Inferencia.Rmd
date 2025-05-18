@@ -1,0 +1,213 @@
+---
+title: 'Exploración y Aplicación de Pruebas de Hipótesis: Un Enfoque en Datos de Nacimientos en Bogotá'
+author: "Jhon Alejandro Ramirez Daza"
+date: "2023-06-16"
+output:
+  html_document: 
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+    keep_md: yes
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introducción
+
+El presente proyecto se centra en el análisis de los datos de "Nacimientos según tipo y sitio del parto en Bogotá D.C. en el contexto de la ciudad de Bogotá, Colombia. Estos datos son obtenidos de la fuente de datos abiertos de [saludata](https://saludata.saludcapital.gov.co/osb/index.php/datos-de-salud/ofertas-de-servicios-de-salud/osb_ofertasrv-partos/), que es la plataforma oficial del gobierno de Bogotá para la divulgación de información relacionada con la salud.
+
+El indicador principal que se aborda en esta investigación es la proporción de partos atendidos según el tipo y sitio de ocurrencia. Se consideran los diferentes tipos de partos, tales como parto espontáneo, cesárea e instrumentado, así como las localidades donde se realizo el parto.
+
+El objetivo principal de este estudio es realizar un análisis exploratorio de los datos y aplicar pruebas de hipótesis para obtener conclusiones significativas sobre los patrones y tendencias de los nacimientos en Bogotá. Esto permitirá comprender mejor la práctica clínica utilizada en la atención de partos, evaluar la calidad de la atención, la seguridad de los pacientes, la demanda de servicios y los resultados en salud.
+
+El periodo de estudio abarca desde el año 2005 hasta la fecha más reciente disponible en la base de datos. La información se recopila de forma anual y se encuentra desglosada por áreas geográficas que corresponden a las localidades del Distrito Capital de Bogotá.
+
+A lo largo de este proyecto, se formularán hipótesis nulas y alternativas relacionadas con los diferentes aspectos de los nacimientos en Bogotá, y se aplicarán pruebas de hipótesis adecuadas para evaluar su validez. Con esto, se busca proporcionar una perspectiva fundamentada en evidencia sobre la situación de los nacimientos en la ciudad y su evolución a lo largo del tiempo.
+
+En resumen, este proyecto tiene como objetivo principal explorar y analizar los datos de nacimientos en Bogotá, enfocándose en el tipo y sitio del parto, con el fin de obtener información relevante sobre la práctica clínica, la calidad de la atención y otros aspectos relacionados con la salud materno-infantil en la ciudad.
+
+```{r Partos Bogoá}
+# Establecer la configuración regional en R para manejar caracteres especiales
+Sys.setlocale(category = "LC_ALL", locale = "Spanish")
+
+# Cargar los datos desde el archivo CSV con el delimitador ";"
+datos <- read.csv("osb_nacimientos_segun_tipo_parto.csv", sep = ";")
+
+# Asignar los títulos de las columnas
+colnames(datos) <- c("Año", "Área", "Régimen afiliación", "Grupo de edad de la madre", "Tipo de parto", "# Nacimientos")
+
+# Visualizar los primeros registros de los datos
+head(datos)
+
+```
+
+## Descipción de los datos
+
+1."Año": Representa el año en el que ocurrieron los nacimientos.
+
+Descripción: Esta variable indica el año en el que se registraron los nacimientos en Bogotá D.C.
+
+Código en R para comprobaciones descriptivas:
+
+```{r Resumen de la variable año}
+summary(datos$Año)
+```
+
+```{r Gráfico de distribución del año}
+hist(datos$Año, main = "Distribución de los nacimientos por año", xlab = "Año", ylab="Frecuencia")
+```
+
+2.  "Área": Indica la localidad de Bogotá D.C. según la residencia de la madre.
+
+Descripción: Esta variable representa la localidad de Bogotá D.C. donde residía la madre en el momento del parto.
+
+Código en R para comprobaciones descriptivas:
+
+```{r Tabla de frecuencia de las localidades}
+table(datos$Área)
+```
+
+```{r Gráfico de barras de las localidades}
+# Obtener nombres de las localidades
+localidades <- unique(datos$Área)
+
+# Dividir las localidades en grupos de 4
+grupos <- split(localidades, ceiling(seq_along(localidades) / 4))
+
+# Generar un gráfico de barras para cada grupo de localidades
+for (i in seq_along(grupos)) {
+  # Obtener localidades del grupo actual
+  localidades_grupo <- grupos[[i]]
+  
+  # Filtrar los datos para las localidades del grupo actual
+  datos_grupo <- datos[datos$Área %in% localidades_grupo, ]
+  
+  # Calcular la frecuencia de cada localidad en el grupo
+  frecuencia <- table(datos_grupo$Área)
+  
+  # Generar el gráfico de barras
+  barplot(frecuencia, main = paste("Distribución de los nacimientos por localidad (Parte", i, ")", sep = " "), 
+          xlab = "Localidad", ylab = "Frecuencia")
+}
+```
+
+3."Régimen afiliación": Indica el régimen de afiliación al Sistema General de Seguridad Social en Salud (SGSSS).
+
+Descripción: Esta variable muestra el tipo de régimen de afiliación de la madre al sistema de salud. Para el resto de el analicis se tomaran de forma indiferente los el regimen ignorado y sin información.
+
+Código en R para comprobaciones descriptivas:
+
+```{r Tabla de frecuencia de los regímenes de afiliación}
+table(datos$`Régimen afiliación`)
+```
+
+```{r Gráfico de pastel de los regímenes de afiliación}
+pie(table(datos$`Régimen afiliación`), main = "Distribución de los nacimientos por régimen de afiliación")
+```
+
+4.  "Grupo de edad de la madre": Representa el quinquenio al cual pertenece la madre.
+
+Descripción: Esta variable indica el grupo de edad al que pertenece la madre en el momento del parto.
+
+Código en R para comprobaciones descriptivas:
+
+```{r Tabla de frecuencia de los grupos de edad de la madre}
+table(datos$`Grupo de edad de la madre`)
+```
+
+```{r Gráfico de barras de los grupos de edad de la madre}
+# Obtener nombres de los grupos de edad
+grupos_edad <- unique(datos$`Grupo de edad de la madre`)
+
+# Dividir los grupos de edad en grupos de 5
+grupos <- split(grupos_edad, ceiling(seq_along(grupos_edad) / 5))
+
+# Generar un gráfico de barras para cada grupo de intervalos de edad
+for (i in seq_along(grupos)) {
+  # Obtener intervalos de edad del grupo actual
+  grupos_edad_grupo <- grupos[[i]]
+  
+  # Filtrar los datos para los intervalos de edad del grupo actual
+  datos_grupo <- datos[datos$`Grupo de edad de la madre` %in% grupos_edad_grupo, ]
+  
+  # Calcular la frecuencia de cada intervalo de edad en el grupo
+  frecuencia <- table(datos_grupo$`Grupo de edad de la madre`)
+  
+  # Generar el gráfico de barras
+  barplot(frecuencia, main = paste("Distribución de los nacimientos por grupo de edad de la madre (Parte", i, ")", sep = " "), 
+          xlab = "Grupo de edad", ylab = "Frecuencia")
+}
+```
+
+5."Tipo de parto": Indica la práctica clínica en la atención del parto.
+
+Descripción: Esta variable representa el tipo de parto realizado, como espontáneo, cesárea o instrumentado.
+
+Código en R para comprobaciones descriptivas:
+
+```{r Tabla de frecuencia de los tipos de parto}
+table(datos$`Tipo de parto`)
+```
+
+```{r Gráfico de pastel de los tipos de parto}
+pie(table(datos$`Tipo de parto`), main = "Distribución de los nacimientos por tipo de parto")
+```
+
+6.  "\# Nacimientos": Indica la cantidad de nacimientos registrados.
+
+Descripción: La variable "\# Nacimientos" representa la cantidad de nacimientos registrados para cada tipo de parto.
+
+Código en R para comprobaciones descriptivas:
+
+```{r tablaentre "# Nacimientos" y "Año"}
+# Calcular la suma de nacimientos por año
+suma_nacimientos_por_año <- tapply(datos$`# Nacimientos`, datos$Año, sum)
+
+# Imprimir la suma de nacimientos por año
+print("Suma de nacimientos por año:")
+print(suma_nacimientos_por_año)
+```
+
+```{r tablaentre "# Nacimientos" y "Área"}
+# Calcular la suma de nacimientos por Área
+suma_nacimientos_por_Área <- tapply(datos$`# Nacimientos`, datos$Área, sum)
+
+# Imprimir la suma de nacimientos por año
+print("Suma de nacimientos por Área:")
+print(suma_nacimientos_por_Área)
+```
+
+```{r tablaentre "# Nacimientos" y "Régimen afiliación"}
+# Calcular la suma de nacimientos por Régimen afiliación
+suma_nacimientos_por_Régimenafiliación <- tapply(datos$`# Nacimientos`, datos$"Régimen afiliación", sum)
+
+# Imprimir la suma de nacimientos por año
+print("Suma de nacimientos por Régimen afiliación:")
+print(suma_nacimientos_por_Régimenafiliación)
+```
+
+```{r tablaentre "# Nacimientos" y "Grupo de edad de la madre"}
+# Calcular la suma de nacimientos por Grupo de edad de la madre
+suma_nacimientos_por_Grupodeedaddelamadre <- tapply(datos$`# Nacimientos`, datos$"Grupo de edad de la madre", sum)
+
+# Imprimir la suma de nacimientos por año
+print("Suma de nacimientos por Grupo de edad de la madre:")
+print(suma_nacimientos_por_Grupodeedaddelamadre)
+```
+
+```{r tablaentre "# Nacimientos" y "Tipo de parto"}
+# Calcular la suma de nacimientos por Tipo de parto
+suma_nacimientos_por_Tipodeparto <- tapply(datos$`# Nacimientos`, datos$"Tipo de parto", sum)
+
+# Imprimir la suma de nacimientos por año
+print("Suma de nacimientos por Tipo de parto:")
+print(suma_nacimientos_por_Tipodeparto)
+```
+
+# Análisis descriptivo de los datos
+
+

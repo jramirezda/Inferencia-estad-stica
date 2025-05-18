@@ -1,0 +1,16 @@
+METADATO;DESCRIPCION
+Serie de tiempo desde;2005
+Definición del indicador;"Se define como la proporción de nacimientos (con resultado nacido vivo), atendidos según tipo de nacimiento que incluye: espontáneo, cesárea, instrumentado; en el mismo año, para un área determinada."
+Utilidad;Monitorear la práctica clínica utilizada en la atención de partos que hace parte de la calidad de la atención, seguridad de los pacientes, demanda de servicios y resultados en salud.
+Unidad de medición;Porcentaje
+Periodicidad;Anual
+Fuente de Información ;"• 2005 - 2020: Base de datos DANE-RUAF-ND - Sistema de Estadísticas Vitales ADE – SDS. Datos Finales • 2021 -Aplicativo - RUAF ND.- Sistema de estadísticas Vitales SDS – Preliminares.
+
+"
+Año;Periodo de recolección de la información 
+Área;Localidad del Distrito según residencia de la madre
+Régimen afiliación;Régimen de afiliación al Sistema General de Seguridad Social en Salud (SGSSS)
+Grupo de edad de la madre;Quinquenio al cual pertenece la madre
+Tipo parto;Práctica clínica en la atención del parto
+# Nacimientos;Cantidad de nacimientos
+Formula de cálculo;Número de nacidos vivos según tipo del parto en un área y periodo determinado / Número total de nacidos vivos en la misma área y periodo determinado *100.
